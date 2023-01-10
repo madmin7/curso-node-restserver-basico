@@ -1,44 +1,88 @@
 import { request as req, response as res } from 'express';
+import bcrypt from 'bcryptjs';
+import { emailExiste } from '../helpers/db-validators.js';
+import Usuario from '../models/usuario.js';
 
 
-const usuariosGet = (req, res) => {
 
-    const { q, nombre= 'no name', apellido } = req.query;
+
+const usuariosGet = async (req, res) => {
+    // const { q, nombre= 'no name', apellido } = req.query;
+
+    const query = { estado: true };
+
+    const { limite = 5, desde = 0 } = req.query;
+
+    // const usuarios = await Usuario.find(query)
+    //     .skip(desde)
+    //     .limit(limite);
+
+    // const total = await Usuario.countDocuments(query);
+
+    const [ total, usuarios ] = await Promise.all([ 
+        Usuario.countDocuments(query),
+        Usuario.find(query)
+        .skip(desde)
+        .limit(limite)
+    ])
 
     res.status(200).json({
-        msj: 'get API - Controller', 
-        q, 
-        nombre,
-        apellido
+        total,
+        usuarios
     });
 }
 
-const usuariosPut = (req, res) => {
+const usuariosPut = async (req, res) => {
 
-    const id = req.params.id;
+    const { id } = req.params;
+    const { password, google, correo, _id, ...resto } = req.body;
 
+    if( password ){
+        const salt = bcrypt.genSaltSync();
+        resto.password = bcrypt.hashSync( password, salt);
+    }
+    
+    const usuario = await Usuario.findByIdAndUpdate( id, resto );
 
-    res.status(200).json({
-        msj: 'put API - usuariosPut',
-        id
-    });
+    res.status(200).json(usuario);
 }
 
-const usuariosPost = (req, res) => {
 
-    const { nombre, apellido, id } = req.body;
+const usuariosPost = async(req, res) => {
 
-    res.status(200).json({
-        id,
-        nombre,
-        apellido,
-        msj: 'post API - usuariosPost'
-    });
+    const { nombre, password, correo, rol } = req.body;
+    
+    try {
+
+        const usuario = new Usuario({ nombre, password, correo, rol });
+        
+        // Encriptar contrasenia SALT vueltas de encriptacion del pass
+        const salt = bcrypt.genSaltSync();
+        usuario.password = bcrypt.hashSync( password, salt);
+
+        //Guardar en BD
+        await usuario.save();
+    
+        res.status(200).json({
+            usuario
+        });
+        
+    } catch (error) {
+        res.status(401).json({
+            msj: error
+        });
+    }
 }
 
-const usuariosDelete = (req, res) => {
+
+const usuariosDelete = async (req, res) => {
+
+    // const usuarioBorrado = await Usuario.findByIdAndDelete(id);
+    const { id } = req.params;
+    const usuarioEstadoFalse = await Usuario.findByIdAndUpdate(id, { estado: false });
+
     res.status(200).json({
-        msj: 'delete API - usuariosDelete'
+        usuarioEstadoFalse
     });
 }
 
