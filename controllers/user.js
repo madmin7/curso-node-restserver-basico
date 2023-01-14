@@ -49,11 +49,9 @@ const usuariosPut = async (req, res) => {
 
 
 const usuariosPost = async(req, res) => {
-
     const { nombre, password, correo, rol } = req.body;
-    
+ 
     try {
-
         const usuario = new Usuario({ nombre, password, correo, rol });
         
         // Encriptar contrasenia SALT vueltas de encriptacion del pass
@@ -77,12 +75,14 @@ const usuariosPost = async(req, res) => {
 
 const usuariosDelete = async (req, res) => {
 
-    // const usuarioBorrado = await Usuario.findByIdAndDelete(id);
     const { id } = req.params;
-    const usuarioEstadoFalse = await Usuario.findByIdAndUpdate(id, { estado: false });
+    const usuarioAutenticado = req.usuario; 
+    const usuarioEstadoFalse = await Usuario.findByIdAndUpdate(id, { estado: false }); 
+
 
     res.status(200).json({
-        usuarioEstadoFalse
+        usuarioEstadoFalse,
+        usuarioAutenticado
     });
 }
 
