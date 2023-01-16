@@ -6,7 +6,7 @@ const esAdminRol = ( req = request, res= response, next ) => {
 
     if( !req.usuario ){
         return res.status(500).json({
-            msj: 'Se quiere verificar el rol sin validar el token'
+            msj: 'Para verificar el rol se requiere un token valido'
         })
     }
 
@@ -42,8 +42,6 @@ const tieneRol = ( ...roles) => {
         next()
     }
 }
-
-
 
 
 export {
