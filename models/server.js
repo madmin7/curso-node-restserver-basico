@@ -1,19 +1,32 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import routerUsuarios from '../routes/user.js';
-import routerAuth from '../routes/auth.js';
-import { dbConnection } from '../database/config.js';
-dotenv.config();
+import { 
+    routerUsuarios,
+    routerAuth,
+    routerCategorias,
+    routerProductos,
+    routerBuscar
+} from '../routes/index.js';
 
+import { dbConnection } from '../database/config.js';
+
+
+dotenv.config();
 
 class Server {
 
     constructor() {
         this.app = express();
         this.port = process.env.PORT;
-        this.usuariosPath = '/api/usuarios';
-        this.authPath = '/api/auth';
+
+        this.paths = {
+            auth:        '/api/auth',
+            buscar:      '/api/buscar',
+            categorias:  '/api/categorias',
+            usuarios:    '/api/usuarios',
+            productos:   '/api/productos',
+        }
 
         //Conectar a base de datos
         this.conectarDB();
@@ -42,8 +55,11 @@ class Server {
     }
 
     routes() {
-        this.app.use( this.authPath, routerAuth);
-        this.app.use( this.usuariosPath, routerUsuarios);
+        this.app.use( this.paths.auth, routerAuth);
+        this.app.use( this.paths.buscar, routerBuscar);
+        this.app.use( this.paths.categorias, routerCategorias);
+        this.app.use( this.paths.productos, routerProductos);
+        this.app.use( this.paths.usuarios, routerUsuarios);
     }
 
     listen() {
